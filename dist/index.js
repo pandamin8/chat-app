@@ -44,8 +44,9 @@ io.on('connection', (socket) => {
     socket.on('sendMessage', (message) => {
         io.emit('message', message);
     });
-    socket.on('sendLocation', (location) => {
+    socket.on('sendLocation', (location, callback) => {
         io.emit('message', `https://google.com/maps?q=${location.lat},${location.long}`);
+        callback();
     });
     socket.on('disconnect', () => {
         io.emit('message', 'A user has left!');
