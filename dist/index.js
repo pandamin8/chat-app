@@ -29,12 +29,23 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const dotenv = __importStar(require("dotenv"));
 dotenv.config({ path: process.cwd() + '/.env' });
 const express_1 = __importDefault(require("express"));
+const socket_io_1 = require("socket.io");
+const http_1 = __importDefault(require("http"));
 const path_1 = __importDefault(require("path"));
 const app = (0, express_1.default)();
+const server = http_1.default.createServer(app);
+const io = new socket_io_1.Server(server);
 const publicDirectoryPath = path_1.default.join(__dirname, '../public');
 app.use(express_1.default.static(publicDirectoryPath));
+io.on('connection', (socket) => {
+    console.log('New WebSocket connection');
+    socket.emit('message', 'Welcome!');
+    socket.on('sendMessage', (message) => {
+        io.emit('message', message);
+    });
+});
 const port = process.env.PORT;
-app.listen(port, () => {
+server.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
 //# sourceMappingURL=index.js.map
