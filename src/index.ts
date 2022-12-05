@@ -5,6 +5,8 @@ import express from 'express'
 import { Server } from 'socket.io'
 import http from 'http'
 
+import { generateMessage, generateLocationMessage } from './utils/messages'
+
 import path from 'path'
 
 const app = express()
@@ -19,22 +21,22 @@ app.use(express.static(publicDirectoryPath))
 io.on('connection', (socket) => {
     console.log('New WebSocket connection')
 
-    socket.broadcast.emit('message', 'A new user has joined!')
+    socket.emit('message', generateMessage('Welcome!'))
 
-    socket.emit('message', 'Welcome!')
+    socket.broadcast.emit('message', generateMessage('A new user has joined!'))
 
     socket.on('sendMessage', (message, callback) => {
-        io.emit('message', message)
+        io.emit('message', generateMessage(message))
         callback()
     })
 
     socket.on('sendLocation', (location, callback) => {
-        io.emit('message', `https://google.com/maps?q=${location.lat},${location.long}`)
+        io.emit('locationMessage', generateLocationMessage(`https://google.com/maps?q=${location.lat},${location.long}`))
         callback()
     })
 
     socket.on('disconnect', () => {
-        io.emit('message', 'A user has left!')
+        io.emit('message', generateMessage('A user has left!'))
     })
 })
 

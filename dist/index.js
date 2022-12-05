@@ -31,6 +31,7 @@ dotenv.config({ path: process.cwd() + '/.env' });
 const express_1 = __importDefault(require("express"));
 const socket_io_1 = require("socket.io");
 const http_1 = __importDefault(require("http"));
+const messages_1 = require("./utils/messages");
 const path_1 = __importDefault(require("path"));
 const app = (0, express_1.default)();
 const server = http_1.default.createServer(app);
@@ -39,18 +40,18 @@ const publicDirectoryPath = path_1.default.join(__dirname, '../public');
 app.use(express_1.default.static(publicDirectoryPath));
 io.on('connection', (socket) => {
     console.log('New WebSocket connection');
-    socket.broadcast.emit('message', 'A new user has joined!');
-    socket.emit('message', 'Welcome!');
+    socket.emit('message', (0, messages_1.generateMessage)('Welcome!'));
+    socket.broadcast.emit('message', (0, messages_1.generateMessage)('A new user has joined!'));
     socket.on('sendMessage', (message, callback) => {
-        io.emit('message', message);
+        io.emit('message', (0, messages_1.generateMessage)(message));
         callback();
     });
     socket.on('sendLocation', (location, callback) => {
-        io.emit('message', `https://google.com/maps?q=${location.lat},${location.long}`);
+        io.emit('locationMessage', (0, messages_1.generateLocationMessage)(`https://google.com/maps?q=${location.lat},${location.long}`));
         callback();
     });
     socket.on('disconnect', () => {
-        io.emit('message', 'A user has left!');
+        io.emit('message', (0, messages_1.generateMessage)('A user has left!'));
     });
 });
 const port = process.env.PORT;
