@@ -41,8 +41,9 @@ io.on('connection', (socket) => {
     console.log('New WebSocket connection');
     socket.broadcast.emit('message', 'A new user has joined!');
     socket.emit('message', 'Welcome!');
-    socket.on('sendMessage', (message) => {
+    socket.on('sendMessage', (message, callback) => {
         io.emit('message', message);
+        callback();
     });
     socket.on('sendLocation', (location, callback) => {
         io.emit('message', `https://google.com/maps?q=${location.lat},${location.long}`);
