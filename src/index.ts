@@ -6,6 +6,7 @@ import { Server } from 'socket.io'
 import http from 'http'
 
 import { generateMessage, generateLocationMessage } from './utils/messages'
+import { addUser, removeUser, getUser, getUsersInRoom } from './utils/user'
 
 import path from 'path'
 
@@ -21,9 +22,19 @@ app.use(express.static(publicDirectoryPath))
 io.on('connection', (socket) => {
     console.log('New WebSocket connection')
 
-    socket.emit('message', generateMessage('Welcome!'))
+    socket.on('join', async({ username, room }, callback) => {
+        const { user, error } = await addUser({ socketId: socket.id, username, room }) as any        
 
-    socket.broadcast.emit('message', generateMessage('A new user has joined!'))
+        if (error)
+            return callback(error)
+
+        socket.join(user.room)
+
+        socket.emit('message', generateMessage('Welcome!'))
+        socket.broadcast.to(user.room).emit('message', generateMessage(`${user.username} has joined!`))
+
+        callback()
+    })
 
     socket.on('sendMessage', (message, callback) => {
         io.emit('message', generateMessage(message))
@@ -35,8 +46,13 @@ io.on('connection', (socket) => {
         callback()
     })
 
-    socket.on('disconnect', () => {
-        io.emit('message', generateMessage('A user has left!'))
+    socket.on('disconnect', async() => {        
+        const { user, error } = await removeUser(socket.id) as any
+
+        if (error) return console.log(error)
+        
+        if (user)
+            io.to(user.room).emit('message', generateMessage(`${user.username} has left!`))
     })
 })
 
