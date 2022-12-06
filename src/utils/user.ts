@@ -39,7 +39,7 @@ export const removeUser = async(socketId: String) => {
 
 export const getUser = async(socketId: String) => {
     try {
-        const user = await User.findOne(socketId)
+        const user = await User.findOne({ socketId })
 
         if (!user)
             return { error: 'User not found' }

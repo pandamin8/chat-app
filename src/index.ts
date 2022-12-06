@@ -25,8 +25,7 @@ io.on('connection', (socket) => {
     socket.on('join', async({ username, room }, callback) => {
         const { user, error } = await addUser({ socketId: socket.id, username, room }) as any        
 
-        if (error)
-            return callback(error)
+        if (error) return callback(error)
 
         socket.join(user.room)
 
@@ -36,13 +35,21 @@ io.on('connection', (socket) => {
         callback()
     })
 
-    socket.on('sendMessage', (message, callback) => {
-        io.emit('message', generateMessage(message))
+    socket.on('sendMessage', async(message, callback) => {
+        const { user, error } = await getUser(socket.id) as any
+
+        if (error) return callback(error)
+
+        io.to(user.room).emit('message', generateMessage(message))
         callback()
     })
 
-    socket.on('sendLocation', (location, callback) => {
-        io.emit('locationMessage', generateLocationMessage(`https://google.com/maps?q=${location.lat},${location.long}`))
+    socket.on('sendLocation', async(location, callback) => {
+        const { user, error } = await getUser(socket.id) as any
+
+        if (error) callback(error)
+
+        io.to(user.room).emit('locationMessage', generateLocationMessage(`https://google.com/maps?q=${location.lat},${location.long}`))
         callback()
     })
 

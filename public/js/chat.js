@@ -42,10 +42,12 @@ $messageForm.addEventListener('submit', (e) => {
     $messageFormButton.setAttribute('disabled', 'disabled')
 
     const message = e.target.elements.message.value
-    socket.emit('sendMessage', message, () => {
+    socket.emit('sendMessage', message, (error) => {
         $messageFormButton.removeAttribute('disabled')
         $messageFormInput.value = ''
         $messageFormInput.focus()
+
+        if (error) alert(error)
     })
 })
 
@@ -61,9 +63,11 @@ $sendLocationButton.addEventListener('click', () => {
     
     navigator.geolocation.getCurrentPosition((position) => {
         const location = { lat: position.coords.latitude, long: position.coords.longitude }        
-        socket.emit('sendLocation', location, () => {            
+        socket.emit('sendLocation', location, (error) => {            
             console.log('Location shared!')
             $sendLocationButton.removeAttribute('disabled')
+
+            if (error) alert(error)
         })
     })
 })
