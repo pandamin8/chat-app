@@ -32,6 +32,15 @@ io.on('connection', (socket) => {
         socket.emit('message', generateMessage('Admin', 'Welcome!'))
         socket.broadcast.to(user.room).emit('message', generateMessage('Admin', `${user.username} has joined!`))
 
+        const { users, error: usersError } = await getUsersInRoom(user.room) as any
+
+        if (usersError) return console.log(usersError)
+
+        io.to(user.room).emit('roomData', {
+            room: user.room,
+            users
+        })
+
         callback()
     })
 
@@ -58,8 +67,18 @@ io.on('connection', (socket) => {
 
         if (error) return console.log(error)
         
-        if (user)
+        if (user){
             io.to(user.room).emit('message', generateMessage('Admin', `${user.username} has left!`))
+
+            const { users, error } = await getUsersInRoom(user.room) as any
+
+            if (error) return console.log(error)
+
+            io.to(user.room).emit('roomData', {
+                room: user.room,
+                users
+            })
+        }
     })
 })
 
