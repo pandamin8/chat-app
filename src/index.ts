@@ -5,8 +5,9 @@ import express from 'express'
 import { Server } from 'socket.io'
 import http from 'http'
 
-import { generateMessage, generateLocationMessage } from './utils/messages'
-import { addUser, removeUser, getUser, getUsersInRoom } from './utils/user'
+import { generateMessage } from './utils/messages'
+import { removeUser, getUsersInRoom } from './utils/user'
+import userHandlers from './handler/user-handler'
 
 import path from 'path'
 
@@ -22,45 +23,7 @@ app.use(express.static(publicDirectoryPath))
 io.on('connection', (socket) => {
     console.log('New WebSocket connection')
 
-    socket.on('join', async({ username, room }, callback) => {
-        const { user, error } = await addUser({ socketId: socket.id, username, room }) as any        
-
-        if (error) return callback(error)
-
-        socket.join(user.room)
-
-        socket.emit('message', generateMessage('Admin', 'Welcome!'))
-        socket.broadcast.to(user.room).emit('message', generateMessage('Admin', `${user.username} has joined!`))
-
-        const { users, error: usersError } = await getUsersInRoom(user.room) as any
-
-        if (usersError) return console.log(usersError)
-
-        io.to(user.room).emit('roomData', {
-            room: user.room,
-            users
-        })
-
-        callback()
-    })
-
-    socket.on('sendMessage', async(message, callback) => {
-        const { user, error } = await getUser(socket.id) as any
-
-        if (error) return callback(error)
-
-        io.to(user.room).emit('message', generateMessage(user.username, message))
-        callback()
-    })
-
-    socket.on('sendLocation', async(location, callback) => {
-        const { user, error } = await getUser(socket.id) as any
-
-        if (error) callback(error)
-
-        io.to(user.room).emit('locationMessage', generateLocationMessage(user.username, `https://google.com/maps?q=${location.lat},${location.long}`))
-        callback()
-    })
+    userHandlers(io, socket)
 
     socket.on('disconnect', async() => {        
         const { user, error } = await removeUser(socket.id) as any
