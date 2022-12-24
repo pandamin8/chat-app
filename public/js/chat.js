@@ -102,7 +102,10 @@ $sendLocationButton.addEventListener('click', () => {
             console.log('Location shared!')
             $sendLocationButton.removeAttribute('disabled')
 
-            if (error) alert(error)
+            if (error) {
+                alert(error)
+                console.log(error)
+            }
         })
     })
 })
